@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-const Book = require('./models/Book');
+const booksRoutes = require('./routes/books');
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb+srv://luciemarche:Loksdu489tn!@monvieuxgrimoire.unq6ero.mongodb.net/?retryWrites=true&w=majority&appName=MonVieuxGrimoire',
@@ -20,39 +20,6 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/api/books', (req, res) => {
-    Book.find()
-        .then(books => {
-            res.status(200).json(books);
-        })
-        .catch(error => res.status(400).json({ error }));
-});
-
-app.post('/api/books', (req, res) => {
-    const book = new Book({
-        ...req.body,
-    });
-    book.save()
-        .then(() => res.status(201).json({ message: 'Book created' }))
-        .catch(error => res.status(400).json({ error }));
-});
-
-app.get('/api/books/:id', (req, res) => {
-    Book.findOne( { _id: req.params.id } )
-        .then(book => res.status(200).json(book))
-        .catch(error => res.status(500).json({ error }));
-});
-
-app.put('/api/books/:id', (req, res) => {
-    Book.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
-        .then(() => res.status(200).json({ message: 'Book updated' }))
-        .catch(error => res.status(400).json({ error }));
-});
-
-app.delete('/api/books/:id', (req, res) => {
-    Book.deleteOne({ _id: req.params.id })
-        .then(() => res.status(200).json({ message: 'Book deleted' }))
-        .catch(error => res.status(400).json({ error }));
-});
+app.use('/api/books', booksRoutes);
 
 module.exports = app;
