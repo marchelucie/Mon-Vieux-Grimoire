@@ -5,6 +5,7 @@
     padding: 50px;
     align-items: center;
     margin-block: 50px;
+    border-radius: 12px;
 
 }
 .Form, .Form label {
