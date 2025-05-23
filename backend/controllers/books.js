@@ -6,10 +6,19 @@ exports.createBook = (req, res, next) => {
     delete bookObject._id;
     delete bookObject._userId;
 
+    const ratings = bookObject.ratings.map(rating => ({
+        grade: rating.grade
+    }));
+    const averageRating = ratings.length > 0
+        ? ratings.reduce((acc, rating) => acc + rating.grade, 0) / ratings.length
+        : 0;
+
+
     const book = new Book({
         ...bookObject,
         userId: req.auth.userId,
         imageUrl: `${req.protocol}://${req.get('host')}/images/optimized/${req.file.filename}`,
+        averageRating
     });
 
     book.save()
@@ -68,3 +77,40 @@ exports.deleteBook = (req, res, next) => {
         })
         .catch(error => res.status(500).json({ error }));
 };
+
+exports.rateBook = (req, res, next) => {
+    Book.findOne({ _id: req.params.id })
+        .then(book => {
+            if (!book) {
+                return res.status(404).json({ message: 'Livre non trouvé' });
+            }
+
+            const userId = req.auth.userId;
+
+            console.log(req.body);
+
+            const { grade } = req.body;
+
+            // Vérifier si l'utilisateur a déjà noté le livre
+            const existingRatingIndex = book.ratings.findIndex(rating => rating.userId === userId);
+
+            if (existingRatingIndex !== -1) {
+                return res.status(401).json({ message: 'Vous avez déjà noté ce livre' });
+            }
+
+            book.ratings.push({ userId, grade });
+            // Ajouter une nouvelle note
+
+            // Calculer la nouvelle note moyenne
+            const averageRating = book.ratings.reduce((acc, rating) => acc + rating.grade, 0) / book.ratings.length;
+
+            // Mettre à jour la note moyenne du livre
+            book.averageRating = averageRating;
+            console.log({ userId, grade, ratings: book.ratings });
+
+            book.save()
+                .then(() => res.status(200).json({ message: 'Note mise à jour !', averageRating }))
+                .catch(error => res.status(400).json({ error }));
+        })
+        .catch(error => res.status(500).json({ error }));
+}
