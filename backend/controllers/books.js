@@ -86,10 +86,9 @@ exports.rateBook = (req, res, next) => {
             }
 
             const userId = req.auth.userId;
+            const grade = req.body.rating;
 
             console.log(req.body);
-
-            const { grade } = req.body;
 
             // Vérifier si l'utilisateur a déjà noté le livre
             const existingRatingIndex = book.ratings.findIndex(rating => rating.userId === userId);
@@ -98,18 +97,17 @@ exports.rateBook = (req, res, next) => {
                 return res.status(401).json({ message: 'Vous avez déjà noté ce livre' });
             }
 
-            book.ratings.push({ userId, grade });
-            // Ajouter une nouvelle note
+            book.ratings.push({ userId, grade }); // Ajoute une nouvelle note
 
             // Calculer la nouvelle note moyenne
             const averageRating = book.ratings.reduce((acc, rating) => acc + rating.grade, 0) / book.ratings.length;
 
             // Mettre à jour la note moyenne du livre
             book.averageRating = averageRating;
-            console.log({ userId, grade, ratings: book.ratings });
+            console.log({ ratings: book.ratings, averageRating: book.averageRating });
 
             book.save()
-                .then(() => res.status(200).json({ message: 'Note mise à jour !', averageRating }))
+                .then(() => res.status(200).json(book))
                 .catch(error => res.status(400).json({ error }));
         })
         .catch(error => res.status(500).json({ error }));
