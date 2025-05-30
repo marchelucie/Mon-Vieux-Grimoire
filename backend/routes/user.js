@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userCtrl = require('../controllers/user');
+const validateUser = require('../middleware/validateUser');
 const rateLimit = require('express-rate-limit');
 
 const loginLimiter = rateLimit({
@@ -11,7 +12,7 @@ const loginLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-router.post('/signup', userCtrl.signup);
+router.post('/signup', validateUser, userCtrl.signup);
 router.post('/login', loginLimiter, userCtrl.login);
 
 module.exports = router;
