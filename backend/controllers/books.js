@@ -112,3 +112,22 @@ exports.rateBook = (req, res, next) => {
         })
         .catch(error => res.status(500).json({ error }));
 }
+
+exports.bestRatedBooks = (req, res, next) => {
+    Book.find()
+        .then(books => {
+            if (books.length < 3 && books.length > 0) {
+                return res.status(200).json(books);
+            }else{     
+                const bestRatedBooks = books
+                .filter(book => book.averageRating > 0)
+                .sort((a, b) => b.averageRating - a.averageRating)
+                .slice(0, 3); // Limite à 3 livres les mieux notés
+                res.status(200).json(bestRatedBooks);
+            };
+            if (books.length === 0) {
+                return res.status(404).json({ message: 'Aucun livre trouvé' });
+            }
+        })
+        .catch(error => res.status(400).json({ error }));
+}
